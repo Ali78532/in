@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6366126711644952"
+     crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة المفردات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2c3e50;
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 85vh;
+        }
+        .button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            font-size: 15px;
+            cursor: pointer;
+            width: 170px;
+            text-align: center;
+            background-color: #008cba;
+            color: white;
+        }
+        .choice-button {
+           margin: 10px 480px;
+           font-size: 20px;
+           width: 300px; /* عرض الزر الخاص بالاختيارات */
+           height: 55px; /* ارتفاع الزر الخاص بالاختيارات */
+           direction: rtl; /* تغيير اتجاه النص من اليمين إلى اليسار */
+           unicode-bidi: bidi-override; /* التحكم في عرض النصوص والرموز */
+        } 
+        #buttonContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 700px; /* تحديد عرض الحاوية */
+            flex-direction: row-reverse; /* يجعل الازرار من اليمين الى اليسار */
+         }
+        #teacher {
+            margin-top: 20px;
+            font-size: 18px; /* تكبير حجم الخط */
+            position: absolute;
+            bottom: 20px;
+        }
+        #question {
+            margin-bottom: 50px;
+            font-size: 35px;
+            direction: ltr; 
+            unicode-bidi: embed;
+        }
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px; /* تكبير حجم الخط */
+        }
+        #link {
+            position: absolute;
+            bottom: 90px; /* رفع المستطيل للأعلى */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px; /* تصغير حجم الخط */
+            color: #fff;
+            text-decoration: none;
+            background-color: #992299; 
+            padding: 8px 40px; 
+            border-radius: 30px;
+            white-space: nowrap; /* منع التفاف النص */
+        }
+    </style>
+</head>
+<body>
+    <div id="startScreen">
+        <h1>📕 لعبة المفردات</h1>
+        <div id="buttonContainer">
+            <button class="button" onclick="startGame('basic')">اساسيات الانكليزي</button>
+            <button class="button" onclick="startGame('unit1')">اليونت 1</button>
+            <button class="button" onclick="startGame('unit2')">اليونت 2</button>
+            <button class="button" onclick="startGame('unit3')">اليونت 3</button>
+            <button class="button" onclick="startGame('unit4')">اليونت 4</button>
+            <button class="button" onclick="startGame('unit5')">اليونت 5</button>
+            <button class="button" onclick="startGame('unit6')">اليونت 6</button>
+            <button class="button" onclick="startGame('unit7')">اليونت 7</button>
+            <button class="button" onclick="startGame('unit8')">اليونت 8</button>
+            <button class="button" onclick="startGame('all')">كل الكتاب</button>
+        </div>
+        <a id="link" href="https://t.me/Eng_55555" target="_blank">اضغط هنا وانضم لقناتي</a>
+    </div>
+    <div id="gameScreen" style="display:none;">
+        <div id="score">نقاطك 0</div>
+        <div id="question"></div>
+        <div id="options"></div>
+    </div>
+    <div id="teacher">إعداد الأستاذ: علي حسين</div>
+ <script>
+/* يحدث خلل بالاسئلة اذا قمت بتكرار الكلمة 
+العربية ، مثل (nice - جميل) و (beautiful - جميل) 
+فسوف يتم عرض كلمة "جميل"
+ مرتين بالاختيارات ولا يعرف الطالب ماذا يختار.
+لكن لا توجد مشكلة اذا قمت بتكرار الكلمة الانكليزية،
+مثل (old - قديم) و (old - كبير بالسن)
+ فأن البرنامج سيختار فقط واحدة */        
+const words = {
+            basic: [
+                { en: 'He', ar: 'هو 👦🏻' },
+                { en: 'She', ar: 'هي 👩🏻' },
+                { en: 'It', ar: 'هو او هي (لغير الانسان) 🐈' },
+                { en: 'I', ar: 'انا 👦🏻' },
+                { en: 'They', ar: 'هم 👨‍👩‍👦‍👦' },
+                { en: 'We', ar: 'نحن 🧑‍🤝‍🧑' },
+                { en: 'You', ar: 'انت 👈' },
+                { en: 'go', ar: 'يذهب 🚶‍♂️' },
+                { en: 'send', ar: 'يرسل 📧' },
+                { en: 'say', ar: 'يقول 🗣️' },
+                { en: 'fly', ar: 'يطير ✈️' },
+                { en: 'win', ar: 'يفوز 🏆' },
+                { en: 'take', ar: 'يأخذ 🤲' },
+                { en: 'put', ar: 'يضع 🧳' },
+                { en: 'drive', ar: 'يقود 🚗' },
+                { en: 'see', ar: 'يرى 👀' },
+                { en: 'eat', ar: 'يأكل 🍽️' },
+                { en: 'buy', ar: 'يشتري 🛒' },
+                { en: 'steal', ar: 'يسرق 🏴‍☠️' },
+                { en: 'grow', ar: 'ينمو 🌱' },
+                { en: 'lose', ar: 'يخسر 😞' },
+                { en: 'find', ar: 'يجد 🔍' },
+                { en: 'negative', ar: 'نفي 🚫' },
+{ en: 'question', ar: 'سؤال ❓' }
+            ],
+            unit1: [
+                { en: 'fantastic', ar: 'رائع 🌟' },
+                { en: 'expensive', ar: 'غالي 💰' },
+                { en: 'cheap', ar: 'رخيص 🪙' },
+                { en: 'boring', ar: 'ممل 😤' },
+                { en: 'fun', ar: 'ممتع 🎉' },
+                { en: 'beautiful', ar: 'جميل 🌸' },
+                { en: 'dangerous', ar: 'خطر ⚠️' },
+                { en: 'safe', ar: 'آمن 🛡' },
+                { en: 'old', ar: 'قديم 🕰️' },
+                { en: 'new', ar: 'جديد ✨' },
+                { en: 'important', ar: 'مهم ⭐' },
+                { en: 'fat', ar: 'سمين 🐷' },
+                { en: 'short', ar: 'قصير 📏' },
+                { en: 'tall', ar: 'طويل 📏' },
+                { en: 'clever', ar: 'ذكي 🧠' },
+                { en: 'lazy', ar: 'كسول 😴' },
+                { en: 'ugly', ar: 'قبيح 🤢' },
+                { en: 'happy', ar: 'سعيد 😃' },
+                { en: 'sad', ar: 'حزين 😥' },
+                { en: 'car', ar: 'سيارة 🚗' },
+{ en: 'help', ar: 'يساعد 🤝' },
+{ en: 'stop', ar: 'توقف ✋' },
+{ en: 'big', ar: 'كبير 🌏' },
+{ en: 'small', ar: 'صغير 🐣' },
+{ en: 'bag', ar: 'حقيبة 🎒' },
+{ en: 'open', ar: 'افتح 🔓' },
+{ en: 'pray', ar: 'يصلي 🙏' },
+{ en: 'office', ar: 'مكتب 🏢' },
+{ en: 'need', ar: 'يحتاج 📌' },
+{ en: 'seats', ar: 'مقاعد 💺' },
+{ en: 'warranty', ar: 'ضمان 🛡️' },
+{ en: 'space', ar: 'فراغ 💭' },
+{ en: 'queue', ar: 'سرة 🚶🏻‍♂️🚶🏻‍♂️🚶🏻‍♂️' },
+{ en: 'advertisement', ar: 'إعلان 📢' },
+{ en: 'smartwatch', ar: 'ساعة ذكية ⌚' },
+{ en: 'engine', ar: 'محرك 🚗' },
+{ en: 'helpful', ar: 'مساعد 🤝' },
+{ en: 'move', ar: 'يتحرك 🏃' },
+{ en: 'person', ar: 'شخص 👤' },
+{ en: 'health', ar: 'صحة 🩺' },
+{ en: 'people', ar: 'ناس 👥' },
+{ en: 'sweet shop', ar: 'محل حلويات 🍬' },
+{ en: 'insect proof', ar: 'مانع حشرات 🦟' },
+{ en: 'airbag', ar: 'وسادة هوائية 🚗' },
+{ en: 'swimming pool', ar: 'حوض سباحة 🏊' },
+{ en: 'video game', ar: 'لعبة فيديو 🎮' },
+{ en: 'lucky', ar: 'محظوظ 🍀' },
+{ en: 'street', ar: 'شارع 🛣️' },
+{ en: 'arrive', ar: 'يصل 🛬' },
+{ en: 'dream', ar: 'حلم 🌙' },
+{ en: 'poet', ar: 'شاعر ✒️' },
+{ en: 'prize', ar: 'جائزة 🏆' },
+{ en: 'read', ar: 'يقرأ 📖' },
+{ en: 'meet', ar: 'يلتقي 🤝' }
+            ],
+            unit2: [
+              { en: 'agree', ar: 'وافق 👍' },
+{ en: 'invite', ar: 'ادعو 📩' },
+{ en: 'suggestion', ar: 'اقتراح 💡' },
+{ en: 'name', ar: 'اسم 🏷️' },
+{ en: 'play', ar: 'يلعب 🎮' },
+{ en: 'clumsy', ar: 'غبي 🤪' },
+{ en: 'fell', ar: 'سقط 🛑' },
+{ en: 'pool', ar: 'حوض 🏊' },
+{ en: 'live', ar: 'يعيش 🌍' },
+{ en: 'father', ar: 'أب 👨‍👧‍👦' },
+{ en: 'mother', ar: 'أم 👩‍👧‍👦' },
+{ en: 'brother', ar: 'أخ 👦' },
+{ en: 'sister', ar: 'أخت 👧' },
+{ en: 'tea', ar: 'شاي 🍵' },
+{ en: 'salt', ar: 'ملح 🧂' },
+{ en: 'clerk', ar: 'موظف 💼' },
+{ en: 'profit', ar: 'ربح 💰' },
+{ en: 'famous', ar: 'مشهور 🌟' },
+{ en: 'review', ar: 'رأي 📝' },
+{ en: 'show', ar: 'عرض 🎭' },
+{ en: 'sports', ar: 'رياضات ⚽' },
+{ en: 'horror', ar: 'رعب 👻' },
+{ en: 'character', ar: 'شخصية 👤' },
+{ en: 'work', ar: 'يعمل 💼' },
+{ en: 'fishing', ar: 'صيد السمك 🎣' },
+{ en: 'shopping', ar: 'تسوق 🛍️' },
+{ en: 'picnic', ar: 'نزهة 🌳' },
+{ en: 'ball', ar: 'كرة ⚽' },
+{ en: 'story', ar: 'قصة 📖' },
+{ en: 'watch', ar: 'يشاهد 👀' },
+{ en: 'goal', ar: 'هدف 🥅' },
+{ en: 'better', ar: 'أفضل 🌟' },
+{ en: 'cost', ar: 'يكلف 💵' },
+{ en: 'free', ar: 'متفرغ 😊' },
+{ en: 'prefer', ar: 'يفضل 👍' },
+{ en: 'start', ar: 'يبدأ 🚀' },
+{ en: 'party', ar: 'حفلة 🎉' },
+{ en: 'ticket', ar: 'تذكرة 🎫' },
+{ en: 'favourite', ar: 'مفضل ❤️' },
+{ en: 'basketball', ar: 'كرة سلة 🏀' },
+{ en: 'homework', ar: 'واجب بيتي 📝' },
+{ en: 'ran', ar: 'ركض 🏃‍♂️' },
+{ en: 'road', ar: 'طريق 🛣️' },
+{ en: 'who', ar: 'مَن ❓' }
+              ],
+            unit3: [
+              { en: 'animal', ar: 'حيوان 🐾' },
+{ en: 'falcon', ar: 'صقر 🦅' },
+{ en: 'milk', ar: 'حليب 🥛' },
+{ en: 'dive', ar: 'يهبط ↘️' },
+{ en: 'hunt', ar: 'يصطاد 🎯' },
+{ en: 'marsh', ar: 'اهوار 🐟' },
+{ en: 'wheat', ar: 'قمح 🌾' },
+{ en: 'barley', ar: 'شعير 🌿' },
+{ en: 'crops', ar: 'محاصيل 🌾' },
+{ en: 'rice', ar: 'أرز 🍚' },
+{ en: 'ride', ar: 'ركوب 🚴' },
+{ en: 'camel', ar: 'جمل 🐪' },
+{ en: 'bite', ar: 'يلدغ 🐍' },
+{ en: 'produce', ar: 'ينتج 🏭' },
+{ en: 'bird', ar: 'طائر 🕊️' },
+{ en: 'bat', ar: 'خفاش 🦇' },
+{ en: 'owl', ar: 'بومة 🦉' },
+{ en: 'kill', ar: 'يقتل 🔪' },
+{ en: 'snake', ar: 'ثعبان 🐍' },
+{ en: 'night', ar: 'ليل 🌙' },
+{ en: 'cow', ar: 'بقرة 🐄' },
+{ en: 'elephant', ar: 'فيل 🐘' },
+{ en: 'rich', ar: 'غني 💰' },
+{ en: 'merchant', ar: 'تاجر 🛍️' },
+{ en: 'son', ar: 'ابن 👦' },
+{ en: 'feather', ar: 'ريشة 🪶' },
+{ en: 'candle', ar: 'شمعة 🕯️' },
+{ en: 'house', ar: 'بيت 🏠' },
+{ en: 'laughing', ar: 'يضحك 😂' }
+              ],
+            unit4: [
+{ en: 'fast', ar: 'سريع 🏃' },
+{ en: 'slow', ar: 'بطيء 🐢' },
+{ en: 'dark', ar: 'مظلم 🌑' },
+{ en: 'bright', ar: 'مشرق 🌞' },
+{ en: 'hard working', ar: 'يعمل بجد 💪' },
+{ en: 'noisy', ar: 'ضوضاء 🔊' },
+{ en: 'quiet', ar: 'هادئ 🤫' },
+{ en: 'old', ar: 'كبير بالسن 👴🏻' },
+{ en: 'young', ar: 'شاب 🧑🏻' },
+{ en: 'badly', ar: 'سيء 👎' },
+{ en: 'well', ar: 'جيد 👍' },
+{ en: 'learn', ar: 'يتعلم 📘' }
+              ],
+            unit5: [
+              { en: 'score', ar: 'يسجل 🥅' },
+{ en: 'tennis', ar: 'تنس 🎾' },
+{ en: 'newspaper', ar: 'جريدة 📰' },
+{ en: 'report', ar: 'تقرير 📄' },
+{ en: 'things', ar: 'أشياء 📦' },
+{ en: 'years', ar: 'سنوات 📅' },
+{ en: 'weak', ar: 'ضعيف 💪' },
+{ en: 'customer', ar: 'زبون 🛒' },
+{ en: 'love', ar: 'حب ❤️' }
+              ],
+            unit6: [
+{ en: 'boy', ar: 'ولد 👦🏻' },
+{ en: 'girl', ar: 'بنت 👧🏻' },
+{ en: 'man', ar: 'رجل 👨🏻' },
+{ en: 'woman', ar: 'امرأة 👩🏻‍🦱' },
+{ en: 'friend', ar: 'صديق 🧑🏻‍🤝‍🧑🏻' },
+{ en: 'student', ar: 'طالب 🎓' },
+{ en: 'teacher', ar: 'معلم 👩🏻‍🏫' },
+{ en: 'lesson', ar: 'درس 📚' },
+{ en: 'anyone', ar: 'أي شخص 👥' },
+{ en: 'school', ar: 'مدرسة 🏫' },
+{ en: 'device', ar: 'جهاز 📱' },
+{ en: 'born', ar: 'انولد 👶' },
+{ en: 'river', ar: 'نهر 🌊' },
+{ en: 'hair', ar: 'شعر 💇‍♂️' },
+{ en: 'clothes', ar: 'ملابس 👗' },
+{ en: 'repair', ar: 'يصلح 🔧' },
+{ en: 'cut', ar: 'يقص ✂️' },
+{ en: 'fires', ar: 'نار 🔥' },
+{ en: 'farmer', ar: 'فلاح 👨‍🌾' },
+{ en: 'surprised', ar: 'مندهش 😮' },
+{ en: 'angry', ar: 'غاضب 😡' }
+              ],
+            unit7: [
+              { en: 'yesterday', ar: 'أمس 🕰️' },
+{ en: 'city', ar: 'مدينة 🏙️' },
+{ en: 'morning', ar: 'صباح 🌅' },
+{ en: 'apologize', ar: 'اعتذر 🙏' },
+{ en: 'floor', ar: 'أرضية 🏠' },
+{ en: 'birthday', ar: 'عيد ميلاد 🎂' },
+{ en: 'book', ar: 'كتاب 📕' },
+{ en: 'idea', ar: 'فكرة 💡' },
+{ en: 'first', ar: 'أول 🥇' },
+{ en: 'language', ar: 'لغة 🌍' },
+{ en: 'cook', ar: 'يطبخ 👨‍🍳' },
+{ en: 'food', ar: 'طعام 🍽️' },
+{ en: 'walk', ar: 'يمشي 🚶‍♂️' },
+{ en: 'messy', ar: 'فوضوي 😵‍💫' },
+{ en: 'lawn mower', ar: 'جزازة العشب 🚜' },
+{ en: 'plants', ar: 'نباتات 🌱' }
+              ],
+            unit8: [
+              { en: 'complain', ar: 'يشكو 😠' },
+{ en: 'difficult', ar: 'صعب 😓' },
+{ en: 'opportunity', ar: 'فرصة 🌟' },
+{ en: 'wages', ar: 'أجور 💸' },
+{ en: 'easy', ar: 'سهل 😊' },
+{ en: 'university', ar: 'جامعة 🎓' },
+{ en: 'job', ar: 'وظيفة 💼' },
+{ en: 'money', ar: 'مال 💵' },
+{ en: 'study', ar: 'يدرس 📚' }
+              ],
+            all: []
+        };
+
+        // Fill 'all' unit with all words from other units
+        for (const unit in words) {
+            if (unit !== 'all') {
+                words.all.push(...words[unit]);
+            }
+        }
+
+        let score = 0;
+        let buttonsDisabled = false; // متغير لتعطيل الأزرار
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function generateQuestion(unit) {
+            if (words[unit].length === 0) {
+                alert('لا توجد مفردات في هذا الفصل حالياً.');
+                return;
+            }
+            const randomWordIndex = Math.floor(Math.random() * words[unit].length);
+            const selectedWord = words[unit][randomWordIndex];
+
+            const incorrectAnswers = words[unit].filter(word => word.en !== selectedWord.en);
+            const randomIncorrectAnswers = [];
+            while (randomIncorrectAnswers.length < 2) {
+                const randomIndex = Math.floor(Math.random() * incorrectAnswers.length);
+                if (!randomIncorrectAnswers.includes(incorrectAnswers[randomIndex])) {
+                    randomIncorrectAnswers.push(incorrectAnswers[randomIndex]);
+                }
+            }
+
+            let options = [selectedWord, ...randomIncorrectAnswers];
+            options = shuffle(options);
+
+            document.getElementById('question').innerHTML = `<span style="color: yellow;">${selectedWord.en}</span>`;
+            document.getElementById('options').innerHTML = options.map(option => 
+               `<button class="button answer choice-button" onclick="checkAnswer('${option.ar}', '${selectedWord.ar}', this, '${unit}')">${option.ar}</button>`
+               ).join('');
+        }
+
+function checkAnswer(selectedAnswer, correctAnswer, button, unit) {
+    if (buttonsDisabled) return;
+    buttonsDisabled = true;
+    if (selectedAnswer === correctAnswer) {
+        score++;
+        button.style.backgroundColor = '#27ae60';
+        setTimeout(() => {
+            resetButtons();
+            generateQuestion(unit);
+            buttonsDisabled = false;
+        }, 2000);
+    } else {
+        score-= 3;
+        button.style.backgroundColor = '#ff4444';
+        document.querySelectorAll('.answer').forEach(btn => {
+            if (btn.textContent === correctAnswer) {
+                btn.style.backgroundColor = '#27ae60';
+            }
+        });
+        window.navigator.vibrate(80);
+        setTimeout(() => {
+            resetButtons();
+            generateQuestion(unit);
+            buttonsDisabled = false;
+        }, 5000); // 5000 ملي ثانية
+    }
+    document.getElementById('score').textContent = `نقاطك ${score}`;
+}
+
+        function resetButtons() {
+            document.querySelectorAll('.button').forEach(btn => {
+                btn.style.backgroundColor = '#008cba';
+            });
+        }
+
+function startGame(unit) {
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'block';
+    score = 0;
+    document.getElementById('score').textContent = `نقاطك ${score}`;
+    generateQuestion(unit);
+
+    // إضافة حالة إلى تاريخ المتصفح
+    window.history.pushState({ page: 'game', unit: unit }, '', '');
+}
+
+window.addEventListener('popstate', function(event) {
+    if (event.state && event.state.page === 'game') {
+        document.getElementById('gameScreen').style.display = 'block';
+        document.getElementById('startScreen').style.display = 'none';
+    } else {
+        document.getElementById('gameScreen').style.display = 'none';
+        document.getElementById('startScreen').style.display = 'block';
+    }
+});
+
+function goToStartScreen() {
+    document.getElementById('gameScreen').style.display = 'none';
+    document.getElementById('startScreen').style.display = 'block';
+    
+    // إزالة الحالة من تاريخ المتصفح
+    window.history.back();
+}
+
+// استدعاء دالة goToStartScreen عند الضغط على زر الرجوع
+document.addEventListener('backbutton', goToStartScreen);
+        </script>
+</body>
+</html>
